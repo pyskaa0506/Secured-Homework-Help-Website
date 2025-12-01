@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv/
+.ENV/
+
+# Database files
+*.db
+instance/
+*.sqlite3
+
+# Flask/Migrations
+migrations/
+*.log
+
+# IDE/editor files
+.vscode/
+*.swp
+*.sublime-workspace
+*.sublime-project
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Docker
+*.pid
+
+# Environment variables
+.env
