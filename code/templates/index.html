@@ -1,0 +1,14 @@
+{% extends "layout.html" %}
+{% block body %}
+    <h3>All Questions</h3>
+    <ul>
+    {% for q in questions %}
+        <li>
+            <a href="/question/{{ q.id }}">
+                {{ q.title }} ({{ q.bounty }}$)
+            </a>
+            - Asked by {{ q.author.username }}
+        </li>
+    {% endfor %}
+    </ul>
+{% endblock %}

@@ -1,0 +1,28 @@
+{% extends "layout.html" %}
+{% block body %}
+    <h2>{{ question.title }}</h2>
+    <p>{{ question.content }}</p>
+    <p>Bounty: {{ question.bounty }}$ | Status: {% if question.is_solved %}SOLVED{% else %}OPEN{% endif %}</p>
+    <hr>
+
+    <h4>Answers:</h4>
+    {% for ans in question.answers %}
+        <div style="border: 1px solid #ccc; padding: 10px; margin: 5px;">
+            <p>{{ ans.content }} - <b>{{ ans.author.username }}</b></p>
+            
+            {% if ans.is_accepted %}
+                <strong style="color: green;">✅ CORRECT ANSWER</strong>
+            {% elif current_user.id == question.user_id and not question.is_solved %}
+                <a href="/accept/{{ ans.id }}">Accept this Answer</a>
+            {% endif %}
+        </div>
+    {% endfor %}
+
+    {% if not question.is_solved %}
+        <hr>
+        <form method="POST">
+            <textarea name="content" placeholder="Type your answer..."></textarea><br>
+            <button type="submit">Submit Answer</button>
+        </form>
+    {% endif %}
+{% endblock %}

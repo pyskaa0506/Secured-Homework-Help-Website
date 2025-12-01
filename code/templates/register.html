@@ -1,0 +1,14 @@
+{% extends "layout.html" %}
+{% block body %}
+    <h3>Register</h3>
+    <form method="POST">
+        <input type="text" name="username" placeholder="Username" required><br>
+        <input type="password" name="password" placeholder="Password" required><br>
+        <select name="role">
+            <option value="student">Student</option>
+            <option value="helper">Helper</option>
+            <option value="admin">Admin</option>
+        </select><br>
+        <button type="submit">Register</button>
+    </form>
+{% endblock %}
