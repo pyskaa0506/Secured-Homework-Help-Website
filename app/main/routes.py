@@ -2,7 +2,7 @@ from flask import render_template, request, redirect, url_for, flash, abort
 from flask_login import login_required, current_user
 from app import db
 from app.main import main
-from app.models import Question, Answer, User
+from app.models import Question, Answer, User, ActivityLog
 
 @main.route('/')
 def index():
@@ -27,6 +27,7 @@ def ask():
                 user_id=current_user.id
             )
             db.session.add(q)
+            ActivityLog.log(current_user, f"Posted question: {q.title} ({bounty} cr)")
             db.session.commit()
             return redirect(url_for('main.index'))
         else:

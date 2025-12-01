@@ -2,7 +2,7 @@ from flask import render_template, redirect, url_for, flash
 from flask_login import login_required, current_user
 from app import db
 from app.admin import admin
-from app.models import User, Question
+from app.models import User, Question, ActivityLog
 
 @admin.route('/dashboard')
 @login_required
@@ -12,7 +12,10 @@ def dashboard():
         
     users = User.query.all()
     questions = Question.query.all()
-    return render_template('admin.html', users=users, questions=questions)
+    # Fetch last 20 logs, newest first
+    logs = ActivityLog.query.order_by(ActivityLog.timestamp.desc()).limit(20).all()
+    
+    return render_template('admin.html', users=users, questions=questions, logs=logs)
 
 @admin.route('/delete_user/<int:user_id>')
 @login_required

@@ -31,4 +31,29 @@
             </table>
         </div>
     </div>
+    <div class="row mt-4">
+        <div class="col-12">
+            <h4>Recent Activity Logs (Monitoring)</h4>
+            <table class="table table-striped table-sm">
+                <thead>
+                    <tr>
+                        <th>Time</th>
+                        <th>User</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in logs %}
+                    <tr>
+                        <td>{{ log.timestamp.strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td>{{ log.username }}</td>
+                        <td>{{ log.action }}</td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="3">No activity recorded yet.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
 {% endblock %}
