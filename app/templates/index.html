@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block content %}
+    <h3>Active Questions</h3>
+    <div class="list-group">
+    {% for q in questions %}
+        <a href="{{ url_for('main.question_detail', q_id=q.id) }}" class="list-group-item list-group-item-action">
+            <div class="d-flex w-100 justify-content-between">
+                <h5 class="mb-1">{{ q.title }}</h5>
+                <small>{{ q.bounty }} Credits</small>
+            </div>
+            <small>By {{ q.author.username }}</small>
+        </a>
+    {% else %}
+        <p>No open questions.</p>
+    {% endfor %}
+    </div>
+{% endblock %}

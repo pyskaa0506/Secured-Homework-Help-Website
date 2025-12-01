@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block content %}
+    <h2>{{ question.title }}</h2>
+    <p class="lead">{{ question.content }}</p>
+    <hr>
+    
+    <h4>Answers</h4>
+    {% for ans in question.answers %}
+        <div class="card mb-2 {% if ans.is_accepted %}border-success{% endif %}">
+            <div class="card-body">
+                <p>{{ ans.content }}</p>
+                <small class="text-muted">By {{ ans.author.username }}</small>
+                
+                {% if ans.is_accepted %}
+                    <span class="badge bg-success float-end">Accepted Solution</span>
+                {% elif current_user.id == question.user_id and not question.is_solved %}
+                    <a href="{{ url_for('main.accept_answer', a_id=ans.id) }}" class="btn btn-sm btn-outline-success float-end">Accept</a>
+                {% endif %}
+            </div>
+        </div>
+    {% endfor %}
+
+    {% if not question.is_solved and current_user.role == 'helper' %}
+        <form method="POST" class="mt-4">
+            <div class="mb-3">
+                <textarea name="content" class="form-control" placeholder="Write your answer..." required></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Submit Answer</button>
+        </form>
+    {% endif %}
+{% endblock %}

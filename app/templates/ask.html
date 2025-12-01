@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block content %}
+    <h3>Ask a Question</h3>
+    <form method="POST">
+        <div class="mb-3">
+            <label>Title</label>
+            <input type="text" name="title" class="form-control" required>
+        </div>
+        <div class="mb-3">
+            <label>Details</label>
+            <textarea name="content" class="form-control" rows="3" required></textarea>
+        </div>
+        <div class="mb-3">
+            <label>Bounty (Credits)</label>
+            <input type="number" name="bounty" class="form-control" value="10" min="1">
+        </div>
+        <button type="submit" class="btn btn-primary">Post Question</button>
+    </form>
+{% endblock %}
