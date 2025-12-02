@@ -41,8 +41,7 @@ def question_detail(q_id):
     q = Question.query.get_or_404(q_id)
 
     if request.method == 'POST':
-        # Submit Answer Logic
-        if current_user.role == 'helper':
+        if current_user.role in ['helper', 'student']:
             ans = Answer(
                 content=request.form['content'],
                 question_id=q.id,
@@ -51,7 +50,7 @@ def question_detail(q_id):
             db.session.add(ans)
             db.session.commit()
         else:
-            flash("Only helpers can answer.")
+            flash("Only students and helpers can answer.")
         return redirect(url_for('main.question_detail', q_id=q.id))
 
     return render_template('detail.html', question=q)
