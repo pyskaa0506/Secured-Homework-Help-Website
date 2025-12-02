@@ -9,6 +9,7 @@ services:
       - db
     environment:
       - DATABASE_URL=postgresql://user:password@db:5432/homework_db
+      - FLASK_DEBUG=1
     volumes:
       - .:/app
 
@@ -19,6 +20,8 @@ services:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: password
       POSTGRES_DB: homework_db
+    ports:
+      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
