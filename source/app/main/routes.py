@@ -88,3 +88,15 @@ def like_answer(a_id):
         ans.likes = AnswerLike.query.filter_by(answer_id=a_id).count() + 1
         db.session.commit()
     return redirect(url_for('main.question_detail', q_id=ans.question_id))
+
+@main.route('/solved')
+def solved():
+    search = request.args.get('search', '')
+    if search:
+        questions = Question.query.filter(
+            Question.is_solved == True,
+            (Question.title.ilike(f'%{search}%') | Question.content.ilike(f'%{search}%'))
+        ).all()
+    else:
+        questions = Question.query.filter_by(is_solved=True).all()
+    return render_template('solved.html', questions=questions, search=search)

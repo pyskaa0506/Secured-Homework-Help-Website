@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block content %}
+    <h3>Solved Questions</h3>
+    
+    <form method="GET" class="mb-4">
+        <div class="input-group">
+            <input type="text" name="search" class="form-control" placeholder="Search solved questions..." value="{{ search }}">
+            <button type="submit" class="btn btn-outline-secondary">Search</button>
+        </div>
+    </form>
+
+    <div class="list-group">
+    {% for q in questions %}
+        <a href="{{ url_for('main.question_detail', q_id=q.id) }}" class="list-group-item list-group-item-action">
+            <div class="d-flex w-100 justify-content-between">
+                <h5 class="mb-1">{{ q.title }}</h5>
+                <span class="badge bg-success">Solved</span>
+            </div>
+            <small>By {{ q.author.username }} | {{ q.bounty }} Credits</small>
+        </a>
+    {% else %}
+        <p>No solved questions found.</p>
+    {% endfor %}
+    </div>
+{% endblock %}

@@ -7,6 +7,7 @@
 <body class="container mt-4">
     <nav class="mb-4">
         <a href="{{ url_for('main.index') }}" class="me-3">Home</a>
+        <a href="{{ url_for('main.solved') }}" class="me-3">Solved Questions</a>
         
         {% if current_user.is_authenticated %}
             <span class="me-3">Logged as: <b>{{ current_user.username }}</b> ({{ current_user.credits }} cr)</span>
