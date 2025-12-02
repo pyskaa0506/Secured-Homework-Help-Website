@@ -6,8 +6,16 @@ from app.models import Question, Answer, User, ActivityLog, AnswerLike
 
 @main.route('/')
 def index():
-    questions = Question.query.filter_by(is_solved=False).all()
-    return render_template('index.html', questions=questions)
+    search = request.args.get('search', '')
+    if search:
+        questions = Question.query.filter(
+            Question.is_solved == False,
+            (Question.title.ilike(f'%{search}%') | Question.content.ilike(f'%{search}%'))
+        ).all()
+    else:
+        questions = Question.query.filter_by(is_solved=False).all()
+    return render_template('index.html', questions=questions, search=search)
+
 
 @main.route('/ask', methods=['GET', 'POST'])
 @login_required
