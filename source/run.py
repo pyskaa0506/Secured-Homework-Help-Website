@@ -5,6 +5,7 @@ app = create_app()
 
 # For first time setup
 with app.app_context():
+    db.drop_all()
     db.create_all()
     if not User.query.filter_by(username='admin').first():
         admin = User(username='admin', password='123', role='admin', credits=100)

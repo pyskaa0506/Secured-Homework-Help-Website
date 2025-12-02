@@ -76,3 +76,11 @@ def accept_answer(a_id):
         db.session.commit()
         
     return redirect(url_for('main.index'))
+
+@main.route('/like/<int:a_id>', methods=['POST'])
+@login_required
+def like_answer(a_id):
+    ans = Answer.query.get_or_404(a_id)
+    ans.likes += 1
+    db.session.commit()
+    return redirect(url_for('main.question_detail', q_id=ans.question_id))

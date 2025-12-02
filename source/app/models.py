@@ -34,6 +34,7 @@ class Answer(db.Model):
     is_accepted = db.Column(db.Boolean, default=False)
     question_id = db.Column(db.Integer, db.ForeignKey('question.id'), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    likes = db.Column(db.Integer, default=0)
 
 class ActivityLog(db.Model):
     id = db.Column(db.Integer, primary_key=True)
