@@ -2,7 +2,7 @@ from flask import render_template, request, redirect, url_for, flash, abort
 from flask_login import login_required, current_user
 from app import db
 from app.main import main
-from app.models import Question, Answer, User, ActivityLog
+from app.models import Question, Answer, User, ActivityLog, AnswerLike
 
 @main.route('/')
 def index():
@@ -77,10 +77,15 @@ def accept_answer(a_id):
         
     return redirect(url_for('main.index'))
 
+
 @main.route('/like/<int:a_id>', methods=['POST'])
 @login_required
 def like_answer(a_id):
     ans = Answer.query.get_or_404(a_id)
-    ans.likes += 1
-    db.session.commit()
+    existing_like = AnswerLike.query.filter_by(user_id=current_user.id, answer_id=a_id).first()
+    if not existing_like:
+        like = AnswerLike(user_id=current_user.id, answer_id=a_id)
+        db.session.add(like)
+        ans.likes = AnswerLike.query.filter_by(answer_id=a_id).count() + 1
+        db.session.commit()
     return redirect(url_for('main.question_detail', q_id=ans.question_id))

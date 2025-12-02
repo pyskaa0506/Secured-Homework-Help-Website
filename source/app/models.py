@@ -34,7 +34,13 @@ class Answer(db.Model):
     is_accepted = db.Column(db.Boolean, default=False)
     question_id = db.Column(db.Integer, db.ForeignKey('question.id'), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    likes = db.Column(db.Integer, default=0)
+    answer_likes = db.relationship('AnswerLike', backref='answer', lazy='dynamic')
+
+class AnswerLike(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    answer_id = db.Column(db.Integer, db.ForeignKey('answer.id'), nullable=False)
+    __table_args__ = (db.UniqueConstraint('user_id', 'answer_id', name='_user_answer_uc'),)
 
 class ActivityLog(db.Model):
     id = db.Column(db.Integer, primary_key=True)

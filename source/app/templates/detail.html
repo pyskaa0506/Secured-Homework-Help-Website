@@ -10,9 +10,10 @@
             <div class="card-body">
                 <p>{{ ans.content }}</p>
                 <small class="text-muted">By {{ ans.author.username }}</small>
-                <span class="badge bg-info ms-2">Likes: {{ ans.likes }}</span>
+                <span class="badge bg-info ms-2">Likes: {{ ans.answer_likes.count() }}</span>
+                {% set liked = ans.answer_likes.filter_by(user_id=current_user.id).first() %}
                 <form method="POST" action="{{ url_for('main.like_answer', a_id=ans.id) }}" style="display:inline;">
-                    <button type="submit" class="btn btn-sm btn-outline-primary ms-2">Like</button>
+                    <button type="submit" class="btn btn-sm btn-outline-primary ms-2" {% if liked %}disabled{% endif %}>Like</button>
                 </form>
                 {% if ans.is_accepted %}
                     <span class="badge bg-success float-end">Accepted Solution</span>
