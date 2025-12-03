@@ -18,6 +18,7 @@ def login():
         if user and user.password == password:
             login_user(user)
             ActivityLog.log(user, "Logged in")
+            db.session.commit()
             return redirect(url_for('main.index'))
         else:
             flash('Login Failed. Check details.')
@@ -37,14 +38,20 @@ def register():
         )
         try:
             db.session.add(user)
+            db.session.flush()  # get UID before logging
+            ActivityLog.log(user, f"Registered as {user.role}")
             db.session.commit()
             return redirect(url_for('auth.login'))
         except:
+            db.session.rollback()
             flash('Username already exists.')
             
     return render_template('register.html')
 
 @auth.route('/logout')
 def logout():
+    if current_user.is_authenticated:
+        ActivityLog.log(current_user, "Logged out")
+        db.session.commit()
     logout_user()
     return redirect(url_for('main.index'))

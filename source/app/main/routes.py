@@ -56,6 +56,7 @@ def question_detail(q_id):
                 user_id=current_user.id
             )
             db.session.add(ans)
+            ActivityLog.log(current_user, f"Answered question: {q.title}")
             db.session.commit()
         else:
             flash("Only students and helpers can answer.")
@@ -80,6 +81,7 @@ def accept_answer(a_id):
         helper = User.query.get(ans.user_id)
         helper.credits += q.bounty
         
+        ActivityLog.log(current_user, f"Accepted answer for: {q.title} ({q.bounty} cr to {helper.username})")
         db.session.commit()
         
     return redirect(url_for('main.index'))
@@ -93,7 +95,6 @@ def like_answer(a_id):
     if not existing_like:
         like = AnswerLike(user_id=current_user.id, answer_id=a_id)
         db.session.add(like)
-        ans.likes = AnswerLike.query.filter_by(answer_id=a_id).count() + 1
         db.session.commit()
     return redirect(url_for('main.question_detail', q_id=ans.question_id))
 

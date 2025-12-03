@@ -18,7 +18,6 @@ class User(UserMixin, db.Model):
     questions = db.relationship('Question', backref='author', lazy=True, cascade="all, delete-orphan")
     answers = db.relationship('Answer', backref='author', lazy=True, cascade="all, delete-orphan")
     likes = db.relationship('AnswerLike', backref='user', lazy=True, cascade="all, delete-orphan")
-    activity_logs = db.relationship('ActivityLog', backref='user', lazy=True, cascade="all, delete-orphan")  # <-- Add this
 
 class Question(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -46,14 +45,18 @@ class AnswerLike(db.Model):
 
 class ActivityLog(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True) # Nullable for system events
-    username = db.Column(db.String(50)) # Snapshot of name in case user is deleted
-    action = db.Column(db.String(100), nullable=False)
+    username = db.Column(db.String(50), nullable=False)  # Snapshot of username
+    action = db.Column(db.String(200), nullable=False)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
-    # Helper method to log events easily
     @staticmethod
-    def log(user, action):
-        new_log = ActivityLog(user_id=user.id, username=user.username, action=action)
+    def log(user_or_username, action):
+        """
+        Accepts: User object or username string
+        """
+        if isinstance(user_or_username, str):
+            username = user_or_username
+        else:
+            username = user_or_username.username
+        new_log = ActivityLog(username=username, action=action)
         db.session.add(new_log)
-        db.session.commit()
