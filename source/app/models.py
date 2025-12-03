@@ -1,6 +1,6 @@
 from app import db, login_manager
 from flask_login import UserMixin
-from datetime import datetime
+from datetime import datetime, date
 
 
 @login_manager.user_loader
@@ -13,11 +13,23 @@ class User(UserMixin, db.Model):
     password = db.Column(db.String(50), nullable=False) # TODO: hash passwords
     role = db.Column(db.String(20), nullable=False) # 'student', 'helper', 'admin'
     credits = db.Column(db.Integer, default=100)
+    last_login_reward = db.Column(db.Date, nullable=True)
 
     # cascading delete for user
     questions = db.relationship('Question', backref='author', lazy=True, cascade="all, delete-orphan")
     answers = db.relationship('Answer', backref='author', lazy=True, cascade="all, delete-orphan")
     likes = db.relationship('AnswerLike', backref='user', lazy=True, cascade="all, delete-orphan")
+
+    def claim_daily_reward(self, amount=20):
+        """
+        True if reward claimed, False if already claimed today
+        """
+        today = date.today()
+        if self.last_login_reward is None or self.last_login_reward < today:
+            self.credits += amount
+            self.last_login_reward = today
+            return True
+        return False
 
 class Question(db.Model):
     id = db.Column(db.Integer, primary_key=True)

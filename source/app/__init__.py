@@ -2,6 +2,7 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from config import Config
+from datetime import date
 
 db = SQLAlchemy()
 login_manager = LoginManager()
@@ -23,5 +24,9 @@ def create_app(config_class=Config):
     app.register_blueprint(auth)
     app.register_blueprint(main)
     app.register_blueprint(admin)
+
+    @app.context_processor
+    def inject_now():
+        return {'now': date.today()}
 
     return app

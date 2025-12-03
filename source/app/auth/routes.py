@@ -18,6 +18,12 @@ def login():
         if user and user.password == password:
             login_user(user)
             ActivityLog.log(user, "Logged in")
+            
+            # Daily login reward
+            if user.claim_daily_reward(20):
+                ActivityLog.log(user, "Claimed daily login reward (+20 cr)")
+                flash("Welcome back! You received 20 credits as a daily login reward!")
+            
             db.session.commit()
             return redirect(url_for('main.index'))
         else:
@@ -41,6 +47,7 @@ def register():
             db.session.flush()  # get UID before logging
             ActivityLog.log(user, f"Registered as {user.role}")
             db.session.commit()
+            flash('Registration successful! Login to claim your daily reward! 👾')
             return redirect(url_for('auth.login'))
         except:
             db.session.rollback()
