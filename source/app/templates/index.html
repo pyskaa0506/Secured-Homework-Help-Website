@@ -15,7 +15,15 @@
                 <h5 class="mb-1">{{ q.title }}</h5>
                 <small>{{ q.bounty }} Credits</small>
             </div>
-            <small>By {{ q.author.username }}</small>
+            <small>
+                By {{ q.author.username }}
+                {% if q.author.role == 'helper' %}
+                    {% set rank, badge_class = q.author.get_helper_rank() %}
+                    <span class="badge {{ badge_class }}">{{ rank }}</span>
+                {% elif q.author.role == 'student' %}
+                    <span class="badge bg-warning text-dark">Student</span>
+                {% endif %}
+            </small>
         </a>
     {% else %}
         <p>No open questions.</p>

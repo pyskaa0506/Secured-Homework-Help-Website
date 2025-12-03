@@ -16,7 +16,16 @@
                 <h5 class="mb-1">{{ q.title }}</h5>
                 <span class="badge bg-success">Solved</span>
             </div>
-            <small>By {{ q.author.username }} | {{ q.bounty }} Credits</small>
+            <small>
+                By {{ q.author.username }}
+                {% if q.author.role == 'helper' %}
+                    {% set rank, badge_class = q.author.get_helper_rank() %}
+                    <span class="badge {{ badge_class }}">{{ rank }}</span>
+                {% elif q.author.role == 'student' %}
+                    <span class="badge bg-warning text-dark">Student</span>
+                {% endif %}
+                | {{ q.bounty }} Credits
+            </small>
         </a>
     {% else %}
         <p>No solved questions found.</p>

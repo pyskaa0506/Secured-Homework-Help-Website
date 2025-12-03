@@ -31,6 +31,19 @@ class User(UserMixin, db.Model):
             return True
         return False
 
+    def get_helper_rank(self):
+        if self.role != 'helper':
+            return None, None
+        
+        if self.credits >= 1000:
+            return "Defeated Athena in Trivia", "bg-danger text-white"
+        elif self.credits >= 300:
+            return "Odin's Heir", "bg-purple text-white"
+        elif self.credits >= 200:
+            return "Knowledge Owl", "bg-info text-dark"
+        else:
+            return "Newbie Helper", "bg-secondary text-white"
+
 class Question(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(100), nullable=False)

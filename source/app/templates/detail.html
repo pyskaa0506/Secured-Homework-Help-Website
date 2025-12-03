@@ -5,7 +5,8 @@
         {% if question.author.role == 'student' %}
             <span class="badge bg-warning text-dark">Student</span>
         {% elif question.author.role == 'helper' %}
-            <span class="badge bg-primary">Helper</span>
+            {% set rank, badge_class = question.author.get_helper_rank() %}
+            <span class="badge {{ badge_class }}">{{ rank }}</span>
         {% endif %}
         | Bounty: <span class="badge bg-success">{{ question.bounty }} Credits</span>
         {% if question.is_solved %}
@@ -25,7 +26,8 @@
                         <small class="text-muted">
                             By <strong>{{ ans.author.username }}</strong>
                             {% if ans.author.role == 'helper' %}
-                                <span class="badge bg-primary">Helper</span>
+                                {% set rank, badge_class = ans.author.get_helper_rank() %}
+                                <span class="badge {{ badge_class }}">{{ rank }}</span>
                             {% elif ans.author.role == 'student' %}
                                 <span class="badge bg-warning text-dark">Student</span>
                             {% endif %}

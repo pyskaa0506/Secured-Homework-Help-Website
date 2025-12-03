@@ -12,6 +12,12 @@ with app.app_context():
         db.session.add(admin)
         db.session.commit()
         print("Admin created: user='admin', pass='123'")
+        
+    if not User.query.filter_by(username='helper').first():
+        helper = User(username='helper', password='123', role='helper', credits=979)
+        db.session.add(helper)
+        db.session.commit()
+        print("Helper created: user='helper', pass='123'")
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0')
