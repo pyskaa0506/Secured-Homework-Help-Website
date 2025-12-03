@@ -1,6 +1,17 @@
 {% extends "base.html" %}
 {% block content %}
     <h2>{{ question.title }}</h2>
+    <p class="text-muted">Asked by <strong>{{ question.author.username }}</strong>
+        {% if question.author.role == 'student' %}
+            <span class="badge bg-warning text-dark">Student</span>
+        {% elif question.author.role == 'helper' %}
+            <span class="badge bg-primary">Helper</span>
+        {% endif %}
+        | Bounty: <span class="badge bg-success">{{ question.bounty }} Credits</span>
+        {% if question.is_solved %}
+            <span class="badge bg-success">Solved</span>
+        {% endif %}
+    </p>
     <p class="lead">{{ question.content }}</p>
     <hr>
     
@@ -9,26 +20,34 @@
         <div class="card mb-2 {% if ans.is_accepted %}border-success{% endif %}">
             <div class="card-body">
                 <p>{{ ans.content }}</p>
-                <small class="text-muted">
-                    By {{ ans.author.username }}
-                    {% if ans.author.role == 'helper' %}
-                        <span class="badge bg-primary">Helper</span>
-                    {% elif ans.author.role == 'student' %}
-                        <span class="badge bg-warning text-dark">Student</span>
-                    {% endif %}
-                </small>
-                <span class="badge bg-info ms-2">Likes: {{ ans.answer_likes.count() }}</span>
-                {% set liked = ans.answer_likes.filter_by(user_id=current_user.id).first() %}
-                <form method="POST" action="{{ url_for('main.like_answer', a_id=ans.id) }}" style="display:inline;">
-                    <button type="submit" class="btn btn-sm btn-outline-primary ms-2" {% if liked %}disabled{% endif %}>Like</button>
-                </form>
-                {% if ans.is_accepted %}
-                    <span class="badge bg-success float-end">Accepted Solution</span>
-                {% elif current_user.id == question.user_id and not question.is_solved %}
-                    <a href="{{ url_for('main.accept_answer', a_id=ans.id) }}" class="btn btn-sm btn-outline-success float-end">Accept</a>
-                {% endif %}
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <small class="text-muted">
+                            By <strong>{{ ans.author.username }}</strong>
+                            {% if ans.author.role == 'helper' %}
+                                <span class="badge bg-primary">Helper</span>
+                            {% elif ans.author.role == 'student' %}
+                                <span class="badge bg-warning text-dark">Student</span>
+                            {% endif %}
+                        </small>
+                        <span class="badge bg-info ms-2">Likes: {{ ans.answer_likes.count() }}</span>
+                        {% set liked = ans.answer_likes.filter_by(user_id=current_user.id).first() %}
+                        <form method="POST" action="{{ url_for('main.like_answer', a_id=ans.id) }}" style="display:inline;">
+                            <button type="submit" class="btn btn-sm btn-outline-primary ms-2" {% if liked %}disabled{% endif %}>Like</button>
+                        </form>
+                    </div>
+                    <div>
+                        {% if ans.is_accepted %}
+                            <span class="badge bg-success">Accepted Solution</span>
+                        {% elif current_user.id == question.user_id and not question.is_solved %}
+                            <a href="{{ url_for('main.accept_answer', a_id=ans.id) }}" class="btn btn-sm btn-outline-success">Accept</a>
+                        {% endif %}
+                    </div>
+                </div>
             </div>
         </div>
+    {% else %}
+        <p class="text-muted">No answers yet. Be the first to help!</p>
     {% endfor %}
 
     {% if not question.is_solved and current_user.role in ['helper', 'student'] %}
