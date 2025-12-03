@@ -14,9 +14,11 @@ class User(UserMixin, db.Model):
     role = db.Column(db.String(20), nullable=False) # 'student', 'helper', 'admin'
     credits = db.Column(db.Integer, default=100)
 
-    # cascasing delete for user
+    # cascading delete for user
     questions = db.relationship('Question', backref='author', lazy=True, cascade="all, delete-orphan")
     answers = db.relationship('Answer', backref='author', lazy=True, cascade="all, delete-orphan")
+    likes = db.relationship('AnswerLike', backref='user', lazy=True, cascade="all, delete-orphan")
+    activity_logs = db.relationship('ActivityLog', backref='user', lazy=True, cascade="all, delete-orphan")  # <-- Add this
 
 class Question(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -34,7 +36,7 @@ class Answer(db.Model):
     is_accepted = db.Column(db.Boolean, default=False)
     question_id = db.Column(db.Integer, db.ForeignKey('question.id'), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    answer_likes = db.relationship('AnswerLike', backref='answer', lazy='dynamic')
+    answer_likes = db.relationship('AnswerLike', backref='answer', lazy='dynamic', cascade="all, delete-orphan")
 
 class AnswerLike(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -46,7 +48,7 @@ class ActivityLog(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True) # Nullable for system events
     username = db.Column(db.String(50)) # Snapshot of name in case user is deleted
-    action = db.Column(db.String(100), nullable=False) # e.g., "Deleted User", "Posted Question"
+    action = db.Column(db.String(100), nullable=False)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
     # Helper method to log events easily
