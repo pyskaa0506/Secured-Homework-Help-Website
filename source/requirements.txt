@@ -10,7 +10,7 @@ Jinja2==3.1.6
 MarkupSafe==3.0.3
 pillow==12.0.0
 psycopg2-binary==2.9.11
-pyopt==0.84
+pyotp==2.9.0
 qrcode==8.2
 SQLAlchemy==2.0.44
 typing_extensions==4.15.0

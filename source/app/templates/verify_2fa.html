@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block content %}
+    <h3>Two-Factor Authentication</h3>
+    <p class="text-muted">Enter the 6-digit code from your authenticator app.</p>
+    
+    <form method="POST" class="mt-4" style="max-width: 400px;">
+        <div class="mb-3">
+            <label class="form-label">Authentication Code</label>
+            <input type="text" name="token" class="form-control form-control-lg text-center" 
+                   required maxlength="6" pattern="[0-9]{6}" 
+                   placeholder="000000" autocomplete="off" autofocus>
+        </div>
+        <button type="submit" class="btn btn-primary btn-lg w-100">Verify</button>
+    </form>
+    
+    <p class="mt-3">
+        <a href="{{ url_for('auth.login') }}">← Back to login</a>
+    </p>
+{% endblock %}

@@ -2,6 +2,7 @@ from app import db, login_manager
 from flask_login import UserMixin
 from datetime import datetime, date
 from werkzeug.security import generate_password_hash, check_password_hash
+import pyotp
 
 
 @login_manager.user_loader
@@ -15,6 +16,10 @@ class User(UserMixin, db.Model):
     role = db.Column(db.String(20), nullable=False)  # 'student', 'helper', 'admin'
     credits = db.Column(db.Integer, default=100)
     last_login_reward = db.Column(db.Date, nullable=True)
+    
+    # 2FA fields
+    totp_secret = db.Column(db.String(32), nullable=True)  # Secret key for TOTP
+    is_2fa_enabled = db.Column(db.Boolean, default=False)
 
     # cascading delete for user
     questions = db.relationship('Question', backref='author', lazy=True, cascade="all, delete-orphan")
@@ -33,14 +38,28 @@ class User(UserMixin, db.Model):
         )
 
     def check_password(self, password):
-        """
-        Verify password against stored hash.
-        Returns True if password matches, False otherwise.
-        Uses constant-time comparison to prevent timing attacks.
-        """
+        """Verify password against stored hash."""
         if not self.password_hash:
             return False
         return check_password_hash(self.password_hash, password)
+
+    def generate_totp_secret(self):
+        self.totp_secret = pyotp.random_base32()
+        return self.totp_secret
+
+    def get_totp_uri(self):
+        if not self.totp_secret:
+            return None
+        return pyotp.totp.TOTP(self.totp_secret).provisioning_uri(
+            name=self.username,
+            issuer_name="HomeworkHelp"
+        )
+
+    def verify_totp(self, token):
+        if not self.totp_secret:
+            return False
+        totp = pyotp.TOTP(self.totp_secret)
+        return totp.verify(token, valid_window=1)
 
     def claim_daily_reward(self, amount=20):
         """

@@ -21,6 +21,9 @@
                     {% set rank, badge_class = current_user.get_helper_rank() %}
                     <span class="badge {{ badge_class }}">{{ rank }}</span>
                 {% endif %}
+                {% if current_user.is_2fa_enabled %}
+                    <span class="badge bg-success">2FA ✓</span>
+                {% endif %}
             </span>
             
             {% if current_user.role == 'student' %}
@@ -29,6 +32,12 @@
             
             {% if current_user.role == 'admin' %}
                 <a href="{{ url_for('admin.dashboard') }}" class="me-3 text-danger">Admin Panel</a>
+            {% endif %}
+            <!-- 2FA Links -->
+            {% if current_user.is_2fa_enabled %}
+                <a href="{{ url_for('auth.disable_2fa') }}" class="me-3 text-warning">Disable 2FA</a>
+            {% else %}
+                <a href="{{ url_for('auth.setup_2fa') }}" class="me-3 text-success">Enable 2FA</a>
             {% endif %}
             
             <a href="{{ url_for('auth.logout') }}">Logout</a>
