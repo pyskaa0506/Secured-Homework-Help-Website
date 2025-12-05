@@ -1,6 +1,7 @@
 from app import db, login_manager
 from flask_login import UserMixin
 from datetime import datetime, date
+from werkzeug.security import generate_password_hash, check_password_hash
 
 
 @login_manager.user_loader
@@ -10,8 +11,8 @@ def load_user(user_id):
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(50), unique=True, nullable=False)
-    password = db.Column(db.String(50), nullable=False) # TODO: hash passwords
-    role = db.Column(db.String(20), nullable=False) # 'student', 'helper', 'admin'
+    password_hash = db.Column(db.String(256), nullable=False)  # Store hash, not plaintext
+    role = db.Column(db.String(20), nullable=False)  # 'student', 'helper', 'admin'
     credits = db.Column(db.Integer, default=100)
     last_login_reward = db.Column(db.Date, nullable=True)
 
@@ -19,6 +20,27 @@ class User(UserMixin, db.Model):
     questions = db.relationship('Question', backref='author', lazy=True, cascade="all, delete-orphan")
     answers = db.relationship('Answer', backref='author', lazy=True, cascade="all, delete-orphan")
     likes = db.relationship('AnswerLike', backref='user', lazy=True, cascade="all, delete-orphan")
+
+    def set_password(self, password):
+        """
+        Hash password using PBKDF2 with SHA256.
+        Werkzeug automatically handles salting.
+        """
+        self.password_hash = generate_password_hash(
+            password,
+            method='pbkdf2:sha256',
+            salt_length=16
+        )
+
+    def check_password(self, password):
+        """
+        Verify password against stored hash.
+        Returns True if password matches, False otherwise.
+        Uses constant-time comparison to prevent timing attacks.
+        """
+        if not self.password_hash:
+            return False
+        return check_password_hash(self.password_hash, password)
 
     def claim_daily_reward(self, amount=20):
         """
@@ -32,6 +54,10 @@ class User(UserMixin, db.Model):
         return False
 
     def get_helper_rank(self):
+        """
+        Returns (rank_name, badge_class) based on credits.
+        Only applicable for helpers.
+        """
         if self.role != 'helper':
             return None, None
         
@@ -69,8 +95,12 @@ class AnswerLike(db.Model):
     __table_args__ = (db.UniqueConstraint('user_id', 'answer_id', name='_user_answer_uc'),)
 
 class ActivityLog(db.Model):
+    """
+    Logs store snapshot of current username.
+    Please watch out if ever adding change username feature
+    """
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(50), nullable=False)  # Snapshot of username
+    username = db.Column(db.String(50), nullable=False)
     action = db.Column(db.String(200), nullable=False)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 

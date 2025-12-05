@@ -10,7 +10,10 @@ services:
         condition: service_healthy
     environment:
       - DATABASE_URL=postgresql://user:password@db:5432/homework_db
-      - FLASK_DEBUG=1
+      - FLASK_DEBUG=0
+      - ADMIN_PASSWORD=SecureAdmin123!
+      - HELPER_PASSWORD=SecureHelper123!
+      - SECRET_KEY=your-secure-random-key-here
     volumes:
       - .:/app
 
