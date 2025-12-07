@@ -3,6 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
+from flask_wtf.csrf import CSRFProtect  # Add this import
 from config import Config
 from datetime import date
 
@@ -17,6 +18,8 @@ limiter = Limiter(
     storage_uri="memory://"
 )
 
+csrf = CSRFProtect()  # Initialize CSRF protection
+
 def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
@@ -24,6 +27,7 @@ def create_app(config_class=Config):
     db.init_app(app)
     login_manager.init_app(app)
     limiter.init_app(app)
+    csrf.init_app(app)  # Register CSRF protection
 
     # add blueprints
     from app.auth.routes import auth
