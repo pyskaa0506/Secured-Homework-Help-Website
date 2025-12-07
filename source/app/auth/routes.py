@@ -1,6 +1,6 @@
 from flask import render_template, redirect, url_for, request, flash, session
 from flask_login import login_user, logout_user, current_user, login_required
-from app import db
+from app import db, limiter
 from app.auth import auth
 from app.models import User, ActivityLog
 from datetime import datetime, timedelta
@@ -52,6 +52,7 @@ def generate_qr_code(uri):
 
 
 @auth.route('/login', methods=['GET', 'POST'])
+@limiter.limit("5 per minute")
 def login():
     if current_user.is_authenticated:
         return redirect(url_for('main.index'))
@@ -91,6 +92,7 @@ def login():
 
 
 @auth.route('/verify-2fa', methods=['GET', 'POST'])
+@limiter.limit("10 per minute")
 def verify_2fa():
     """Verify 2FA token during login."""
     if current_user.is_authenticated:
@@ -150,6 +152,7 @@ def verify_2fa():
 
 @auth.route('/setup-2fa', methods=['GET', 'POST'])
 @login_required
+@limiter.limit("10 per hour")
 def setup_2fa():
     """Setup 2FA for the current user."""
     if current_user.is_2fa_enabled:
@@ -185,6 +188,7 @@ def setup_2fa():
 
 @auth.route('/disable-2fa', methods=['GET', 'POST'])
 @login_required
+@limiter.limit("5 per minute")
 def disable_2fa():
     """Disable 2FA for the current user."""
     if not current_user.is_2fa_enabled:
@@ -215,6 +219,7 @@ def disable_2fa():
 
 
 @auth.route('/register', methods=['GET', 'POST'])
+@limiter.limit("3 per hour")
 def register():
     if current_user.is_authenticated:
         return redirect(url_for('main.index'))
@@ -264,6 +269,7 @@ def register():
     return render_template('register.html')
 
 @auth.route('/logout')
+@limiter.exempt
 def logout():
     if current_user.is_authenticated:
         ActivityLog.log(current_user, "Logged out")
