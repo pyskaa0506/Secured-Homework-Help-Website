@@ -2,6 +2,7 @@
 {% block content %}
     <h3>Ask a Question</h3>
     <form method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
         <div class="mb-3">
             <label>Title</label>
             <input type="text" name="title" class="form-control" required>
