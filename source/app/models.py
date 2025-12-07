@@ -2,7 +2,17 @@ from app import db, login_manager
 from flask_login import UserMixin
 from datetime import datetime, date
 from werkzeug.security import generate_password_hash, check_password_hash
+from cryptography.fernet import Fernet
 import pyotp
+import os
+
+
+def _get_fernet():
+    """Get Fernet cipher for encrypting TOTP secrets."""
+    key = os.environ.get('TOTP_ENCRYPTION_KEY')
+    if not key:
+        raise RuntimeError("TOTP_ENCRYPTION_KEY environment variable is required")
+    return Fernet(key.encode())
 
 
 @login_manager.user_loader
@@ -12,19 +22,39 @@ def load_user(user_id):
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(50), unique=True, nullable=False)
-    password_hash = db.Column(db.String(256), nullable=False)  # Store hash, not plaintext
-    role = db.Column(db.String(20), nullable=False)  # 'student', 'helper', 'admin'
+    password_hash = db.Column(db.String(256), nullable=False)
+    role = db.Column(db.String(20), nullable=False)
     credits = db.Column(db.Integer, default=100)
     last_login_reward = db.Column(db.Date, nullable=True)
     
-    # 2FA fields
-    totp_secret = db.Column(db.String(32), nullable=True)  # Secret key for TOTP
+    # 2FA fields, encrypted secret
+    _totp_secret_encrypted = db.Column('totp_secret', db.String(256), nullable=True)
     is_2fa_enabled = db.Column(db.Boolean, default=False)
 
     # cascading delete for user
     questions = db.relationship('Question', backref='author', lazy=True, cascade="all, delete-orphan")
     answers = db.relationship('Answer', backref='author', lazy=True, cascade="all, delete-orphan")
     likes = db.relationship('AnswerLike', backref='user', lazy=True, cascade="all, delete-orphan")
+
+    @property
+    def totp_secret(self):
+        """Decrypt and return TOTP secret."""
+        if not self._totp_secret_encrypted:
+            return None
+        try:
+            f = _get_fernet()
+            return f.decrypt(self._totp_secret_encrypted.encode()).decode()
+        except Exception:
+            return None
+
+    @totp_secret.setter
+    def totp_secret(self, value):
+        """Encrypt and store TOTP secret."""
+        if value is None:
+            self._totp_secret_encrypted = None
+        else:
+            f = _get_fernet()
+            self._totp_secret_encrypted = f.encrypt(value.encode()).decode()
 
     def set_password(self, password):
         """
@@ -44,27 +74,31 @@ class User(UserMixin, db.Model):
         return check_password_hash(self.password_hash, password)
 
     def generate_totp_secret(self):
-        self.totp_secret = pyotp.random_base32()
-        return self.totp_secret
+        """Generate a new TOTP secret for the user."""
+        secret = pyotp.random_base32()
+        self.totp_secret = secret  # Will be encrypted by setter
+        return secret
 
     def get_totp_uri(self):
-        if not self.totp_secret:
+        """Get the provisioning URI for authenticator apps."""
+        secret = self.totp_secret  # Will be decrypted by getter
+        if not secret:
             return None
-        return pyotp.totp.TOTP(self.totp_secret).provisioning_uri(
+        return pyotp.totp.TOTP(secret).provisioning_uri(
             name=self.username,
             issuer_name="HomeworkHelp"
         )
 
     def verify_totp(self, token):
-        if not self.totp_secret:
+        """Verify a TOTP token."""
+        secret = self.totp_secret  # Will be decrypted by getter
+        if not secret:
             return False
-        totp = pyotp.TOTP(self.totp_secret)
+        totp = pyotp.TOTP(secret)
         return totp.verify(token, valid_window=1)
 
     def claim_daily_reward(self, amount=20):
-        """
-        True if reward claimed, False if already claimed today
-        """
+        """True if reward claimed, False if already claimed today."""
         today = date.today()
         if self.last_login_reward is None or self.last_login_reward < today:
             self.credits += amount
@@ -125,9 +159,7 @@ class ActivityLog(db.Model):
 
     @staticmethod
     def log(user_or_username, action):
-        """
-        Accepts: User object or username string
-        """
+        """Accepts: User object or username string."""
         if isinstance(user_or_username, str):
             username = user_or_username
         else:

@@ -3,6 +3,7 @@ from flask_login import login_user, logout_user, current_user, login_required
 from app import db
 from app.auth import auth
 from app.models import User, ActivityLog
+from datetime import datetime, timedelta
 import re
 import pyotp
 import qrcode
@@ -11,9 +12,7 @@ import base64
 
 
 def validate_password(password):
-    """
-    Returns: is_valid, error_message
-    """
+    """Returns: is_valid, error_message"""
     if len(password) < 8:
         return False, "Password must be at least 8 characters long."
     if len(password) > 128:
@@ -28,9 +27,7 @@ def validate_password(password):
 
 
 def validate_username(username):
-    """
-    Returns: is_valid, error_message
-    """
+    """Returns: is_valid, error_message"""
     if len(username) < 3:
         return False, "Username must be at least 3 characters long."
     if len(username) > 50:
@@ -41,6 +38,7 @@ def validate_username(username):
 
 
 def generate_qr_code(uri):
+    """Generate a base64-encoded QR code image."""
     qr = qrcode.QRCode(version=1, box_size=10, border=5)
     qr.add_data(uri)
     qr.make(fit=True)
@@ -71,9 +69,9 @@ def login():
         if user and user.check_password(password):
             # Check if 2FA is enabled
             if user.is_2fa_enabled:
-                # Store user ID in session for 2FA verification
+                # Store user ID and timestamp in session for 2FA verification
                 session['2fa_user_id'] = user.id
-                session['2fa_verified'] = False
+                session['2fa_timestamp'] = datetime.utcnow().isoformat()
                 return redirect(url_for('auth.verify_2fa'))
             
             # No 2FA, proceed with login
@@ -94,17 +92,35 @@ def login():
 
 @auth.route('/verify-2fa', methods=['GET', 'POST'])
 def verify_2fa():
+    """Verify 2FA token during login."""
     if current_user.is_authenticated:
         return redirect(url_for('main.index'))
     
     user_id = session.get('2fa_user_id')
-    if not user_id:
+    timestamp_str = session.get('2fa_timestamp')
+    
+    if not user_id or not timestamp_str:
         flash('Please login first.')
+        return redirect(url_for('auth.login'))
+    
+    # 5 min expiration for 2FA
+    try:
+        timestamp = datetime.fromisoformat(timestamp_str)
+        if datetime.utcnow() - timestamp > timedelta(minutes=5):
+            session.pop('2fa_user_id', None)
+            session.pop('2fa_timestamp', None)
+            flash('2FA session expired. Please login again.')
+            return redirect(url_for('auth.login'))
+    except (ValueError, TypeError):
+        session.pop('2fa_user_id', None)
+        session.pop('2fa_timestamp', None)
+        flash('Session error. Please login again.')
         return redirect(url_for('auth.login'))
     
     user = User.query.get(user_id)
     if not user:
         session.pop('2fa_user_id', None)
+        session.pop('2fa_timestamp', None)
         flash('Session expired. Please login again.')
         return redirect(url_for('auth.login'))
     
@@ -114,6 +130,7 @@ def verify_2fa():
         if user.verify_totp(token):
             # Clear 2FA session data
             session.pop('2fa_user_id', None)
+            session.pop('2fa_timestamp', None)
             
             # Complete login
             login_user(user)
@@ -134,6 +151,7 @@ def verify_2fa():
 @auth.route('/setup-2fa', methods=['GET', 'POST'])
 @login_required
 def setup_2fa():
+    """Setup 2FA for the current user."""
     if current_user.is_2fa_enabled:
         flash('2FA is already enabled.')
         return redirect(url_for('main.index'))
@@ -253,4 +271,5 @@ def logout():
     logout_user()
     # Clear any 2FA session data
     session.pop('2fa_user_id', None)
+    session.pop('2fa_timestamp', None)
     return redirect(url_for('main.index'))
