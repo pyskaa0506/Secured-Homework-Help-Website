@@ -8,3 +8,9 @@ class Config:
     if not SQLALCHEMY_DATABASE_URI:
         raise RuntimeError("DATABASE_URL environment variable is required")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    
+    # Session and CSRF Protection
+    SESSION_COOKIE_SECURE = True 
+    SESSION_COOKIE_HTTPONLY = True
+    SESSION_COOKIE_SAMESITE = 'Lax'
+    WTF_CSRF_TIME_LIMIT = None
