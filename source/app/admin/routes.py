@@ -3,12 +3,13 @@ from flask_login import login_required, current_user
 from app import db
 from app.admin import admin
 from app.models import User, Question, ActivityLog
+from flask import abort
 
 @admin.route('/dashboard')
 @login_required
 def dashboard():
     if current_user.role != 'admin':
-        return redirect(url_for('main.index'))
+        abort(403)
         
     users = User.query.all()
     questions = Question.query.all()

@@ -3,6 +3,7 @@ from flask_login import login_required, current_user
 from app import db
 from app.main import main
 from app.models import Question, Answer, User, ActivityLog, AnswerLike
+from secrets import token_urlsafe
 
 @main.route('/')
 def index():
@@ -74,15 +75,17 @@ def accept_answer(a_id):
         abort(403)
 
     if not q.is_solved:
-        q.is_solved = True
-        ans.is_accepted = True
+        q = db.session.query(Question).with_for_update().filter_by(id=q.id).first()
         
-        # Transfer credits to helper
-        helper = User.query.get(ans.user_id)
-        helper.credits += q.bounty
-        
-        ActivityLog.log(current_user, f"Accepted answer for: {q.title} ({q.bounty} cr to {helper.username})")
-        db.session.commit()
+        if not q.is_solved:
+            q.is_solved = True
+            ans.is_accepted = True
+
+            helper = User.query.with_for_update().get(ans.user_id)
+            helper.credits += q.bounty
+            
+            ActivityLog.log(current_user, f"Accepted answer for: {q.title} ({q.bounty} cr to {helper.username})")
+            db.session.commit()
         
     return redirect(url_for('main.index'))
 

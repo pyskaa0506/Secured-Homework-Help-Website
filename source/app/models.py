@@ -5,6 +5,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from cryptography.fernet import Fernet
 import pyotp
 import os
+from sqlalchemy import select, func
 
 
 def _get_fernet():
@@ -100,9 +101,23 @@ class User(UserMixin, db.Model):
     def claim_daily_reward(self, amount=20):
         """True if reward claimed, False if already claimed today."""
         today = date.today()
-        if self.last_login_reward is None or self.last_login_reward < today:
-            self.credits += amount
-            self.last_login_reward = today
+        
+        # Atomic update
+        result = db.session.execute(
+            db.update(User)
+            .where(User.id == self.id)
+            .where(db.or_(
+                User.last_login_reward == None,
+                User.last_login_reward < today
+            ))
+            .values(
+                credits=User.credits + amount,
+                last_login_reward=today
+            )
+        )
+        
+        if result.rowcount > 0:
+            db.session.refresh(self)
             return True
         return False
 
