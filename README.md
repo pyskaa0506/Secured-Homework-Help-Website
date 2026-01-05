@@ -28,6 +28,7 @@ Containerization : Docker (Compose)
 8. A new "Secured-Homework-Help-Website" folder has been created, move inside the folder with ```cd Secured-Homework-Help-Website```.
 9. Then move into the source folder with ```cd source```
 
+Advanced Step : A file called .env.example should be provided, it can be use to create a template .env file, this is required to run the website, the .env file should remain in the source folder after creation.
 
 10. Make sure Docker Desktop is active, on Windows, Docker Desktop can be activated by simply opening it, then it can be closed and it will stay running in the background until the computer is powered off.
 
